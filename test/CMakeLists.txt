@@ -1,0 +1,5 @@
+add_executable(test_cpu test_cpu.c ${CMAKE_SOURCE_DIR}/extern/munit/munit.c)
+target_include_directories(test_cpu PUBLIC ${CMAKE_SOURCE_DIR}/extern)
+target_include_directories(test_cpu PUBLIC ${CMAKE_SOURCE_DIR})
+target_link_libraries(test_cpu PUBLIC libnes)
+add_test(TestCPU test_cpu)
