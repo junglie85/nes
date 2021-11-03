@@ -3,6 +3,8 @@
 
 #include <libnes/cpu.h>
 
+const uint8_t CPU_PROCESSOR_STATUS_UNSET = 0b00000000;
+
 MunitResult test_0xA9_lda_immediate_load_data(const MunitParameter param[], void* user_data_or_fixture)
 {
     uint8_t program[3] = { 0xA9, 0x05, 0x00 };
@@ -12,8 +14,8 @@ MunitResult test_0xA9_lda_immediate_load_data(const MunitParameter param[], void
 
     assert_true(finished);
     assert_uint8(cpu->register_a, ==, 0x05);
-    assert_uint8(cpu->status_register & 0b00000010, ==, 0b00);
-    assert_uint8(cpu->status_register & 0b10000000, ==, 0b00);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_ZERO_FLAG, ==, CPU_PROCESSOR_STATUS_UNSET);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_NEGATIVE_FLAG, ==, CPU_PROCESSOR_STATUS_UNSET);
 
     return MUNIT_OK;
 }
@@ -25,7 +27,7 @@ MunitResult test_0xA9_lda_zero_flag(const MunitParameter param[], void* user_dat
     struct cpu* cpu = cpu_init();
     cpu_interpret(cpu, program);
 
-    assert_uint8(cpu->status_register & 0b00000010, ==, 0b10);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_ZERO_FLAG, ==, CPU_PROCESSOR_STATUS_ZERO_FLAG);
 
     return MUNIT_OK;
 }
@@ -37,7 +39,51 @@ MunitResult test_0xA9_lda_negative_flag(const MunitParameter param[], void* user
     struct cpu* cpu = cpu_init();
     cpu_interpret(cpu, program);
 
-    assert_uint8(cpu->status_register & 0b10000000, ==, 0b10000000);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_NEGATIVE_FLAG, ==, CPU_PROCESSOR_STATUS_NEGATIVE_FLAG);
+
+    return MUNIT_OK;
+}
+
+MunitResult test_0xAA_tax_transfer_data(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[2] = { 0xAA, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_a = 99;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->register_x, ==, 99);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_ZERO_FLAG, ==, CPU_PROCESSOR_STATUS_UNSET);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_NEGATIVE_FLAG, ==, CPU_PROCESSOR_STATUS_UNSET);
+
+    return MUNIT_OK;
+}
+
+MunitResult test_0xAA_tax_zero_flag(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[2] = { 0xAA, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_a = 0;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_ZERO_FLAG, ==, CPU_PROCESSOR_STATUS_ZERO_FLAG);
+
+    return MUNIT_OK;
+}
+
+MunitResult test_0xAA_tax_negative_flag(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[2] = { 0xAA, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_a = -127;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_NEGATIVE_FLAG, ==, CPU_PROCESSOR_STATUS_NEGATIVE_FLAG);
 
     return MUNIT_OK;
 }
@@ -56,6 +102,18 @@ int main(int argc, const char* argv[])
         {
             "/test-0xA9-lda-negative-flag",
             test_0xA9_lda_negative_flag,
+        },
+        {
+            "/test-0xAA-tax-transfer-data",
+            test_0xAA_tax_transfer_data,
+        },
+        {
+            "/test-0xAA-tax-zero-flag",
+            test_0xAA_tax_zero_flag,
+        },
+        {
+            "/test-0xAA-tax-negative-flag",
+            test_0xAA_tax_negative_flag,
         },
         { 0 }
     };

@@ -18,21 +18,38 @@ bool cpu_interpret(struct cpu* cpu, const uint8_t* program)
         ++cpu->program_counter;
 
         switch (opcode) {
+        case 0xAA: {
+            cpu->register_x = cpu->register_a;
+
+            if (cpu->register_x == 0) {
+                cpu->processor_status |= CPU_PROCESSOR_STATUS_ZERO_FLAG;
+            } else {
+                cpu->processor_status &= ~CPU_PROCESSOR_STATUS_ZERO_FLAG;
+            }
+
+            if (cpu->register_x & 0b10000000) {
+                cpu->processor_status |= CPU_PROCESSOR_STATUS_NEGATIVE_FLAG;
+            } else {
+                cpu->processor_status &= ~CPU_PROCESSOR_STATUS_NEGATIVE_FLAG;
+            }
+
+            break;
+        }
         case 0xA9: {
             uint8_t value = program[cpu->program_counter];
             cpu->register_a = value;
             ++cpu->program_counter;
 
             if (cpu->register_a == 0) {
-                cpu->status_register |= 0b00000010;
+                cpu->processor_status |= CPU_PROCESSOR_STATUS_ZERO_FLAG;
             } else {
-                cpu->status_register &= 0b11111101;
+                cpu->processor_status &= ~CPU_PROCESSOR_STATUS_ZERO_FLAG;
             }
 
             if (cpu->register_a & 0b10000000) {
-                cpu->status_register |= 0b10000000;
+                cpu->processor_status |= CPU_PROCESSOR_STATUS_NEGATIVE_FLAG;
             } else {
-                cpu->status_register &= 0b01111111;
+                cpu->processor_status &= ~CPU_PROCESSOR_STATUS_NEGATIVE_FLAG;
             }
 
             break;
