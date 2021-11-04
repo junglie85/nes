@@ -14,7 +14,7 @@ void print_binary(uint8_t byte)
 
 int main(void)
 {
-    uint8_t program[4] = { 0xA9, 0xFF, 0xAA, 0x00 };
+    uint8_t program[5] = { 0xA9, 0xC0, 0xAA, 0xE8, 0x00 };
 
     struct cpu* cpu = cpu_init();
     bool finished = cpu_interpret(cpu, program);

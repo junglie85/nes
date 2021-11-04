@@ -13,6 +13,7 @@ struct cpu {
     uint8_t register_x;
     uint8_t processor_status;
     uint16_t program_counter;
+    bool running;
 };
 
 struct cpu* cpu_init(void);

@@ -88,6 +88,66 @@ MunitResult test_0xAA_tax_negative_flag(const MunitParameter param[], void* user
     return MUNIT_OK;
 }
 
+MunitResult test_0xE8_inx_increment_x(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[2] = { 0xE8, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_x = 99;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->register_x, ==, 100);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_ZERO_FLAG, ==, CPU_PROCESSOR_STATUS_UNSET);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_NEGATIVE_FLAG, ==, CPU_PROCESSOR_STATUS_UNSET);
+
+    return MUNIT_OK;
+}
+
+MunitResult test_0xE8_inx_zero_flag(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[2] = { 0xE8, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_x = -1;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->register_x, ==, 0);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_ZERO_FLAG, ==, CPU_PROCESSOR_STATUS_ZERO_FLAG);
+
+    return MUNIT_OK;
+}
+
+MunitResult test_0xE8_inx_negative_flag(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[2] = { 0xE8, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_x = -2;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->register_x, ==, -1);
+    assert_uint8(cpu->processor_status & CPU_PROCESSOR_STATUS_NEGATIVE_FLAG, ==, CPU_PROCESSOR_STATUS_NEGATIVE_FLAG);
+
+    return MUNIT_OK;
+}
+
+MunitResult test_0xE8_inx_overflow(const MunitParameter param[], void* user_data_or_fixture)
+{
+    uint8_t program[3] = { 0xE8, 0xE8, 0x00 };
+
+    struct cpu* cpu = cpu_init();
+    cpu->register_x = 0xFF;
+
+    cpu_interpret(cpu, program);
+
+    assert_uint8(cpu->register_x, ==, 1);
+
+    return MUNIT_OK;
+}
+
 int main(int argc, const char* argv[])
 {
     MunitTest tests[] = {
@@ -114,6 +174,22 @@ int main(int argc, const char* argv[])
         {
             "/test-0xAA-tax-negative-flag",
             test_0xAA_tax_negative_flag,
+        },
+        {
+            "/test-0xE8-inx-increment-x",
+            test_0xE8_inx_increment_x,
+        },
+        {
+            "/test-0xE8-inx-zero-flag",
+            test_0xE8_inx_zero_flag,
+        },
+        {
+            "/test-0xE8-inx-negative-flag",
+            test_0xE8_inx_negative_flag,
+        },
+        {
+            "/test-0xE8-inx-overflow",
+            test_0xE8_inx_overflow,
         },
         { 0 }
     };
